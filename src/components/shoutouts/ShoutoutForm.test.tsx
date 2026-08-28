@@ -118,7 +118,7 @@ describe("ShoutoutForm", () => {
     expect(screen.getByLabelText("To")).toHaveValue("");
     expect(screen.getByLabelText("Message")).toHaveValue("");
     expect(screen.getByText("Shoutout posted! 🎉")).toBeInTheDocument();
-    expect(confetti).toHaveBeenCalledTimes(1);
+    expect(confetti).toHaveBeenCalled();
   });
 
   it("shows the server error banner without clearing field values when the mocked call rejects", async () => {

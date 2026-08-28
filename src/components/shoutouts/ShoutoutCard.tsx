@@ -1,9 +1,10 @@
 // Single shoutout card: a compact, calmly animated presentation of one
 // Shoutout row. The left accent border and emoji "well" are derived from
 // getEmojiTheme so the color mapping lives in exactly one place. The emoji
-// itself gets a small periodic wiggle, staggered per card, fully disabled
-// under prefers-reduced-motion. The relative-timestamp formatter below is
-// only used here, so it stays local rather than moving into lib/.
+// itself gets a small periodic wiggle, staggered per card, and the whole
+// card lifts a couple pixels with its icon well popping on hover, fully
+// disabled under prefers-reduced-motion. The relative-timestamp formatter
+// below is only used here, so it stays local rather than moving into lib/.
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { Shoutout } from "@/types/shoutout";
@@ -60,9 +61,10 @@ export function ShoutoutCard(props: ShoutoutCardProps): JSX.Element {
       layout
       initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -3 }}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900",
+        "group rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900",
         "border-l-4 sm:p-5",
         theme.border,
       )}
@@ -71,6 +73,7 @@ export function ShoutoutCard(props: ShoutoutCardProps): JSX.Element {
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl leading-none",
+            "transition-transform duration-300 group-hover:scale-110",
             theme.well,
           )}
         >

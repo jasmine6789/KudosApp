@@ -2,8 +2,10 @@
 // EMOJI_ALLOWLIST as a WAI-ARIA radiogroup with roving tabindex: Tab enters
 // and exits the group exactly once, arrow keys move the checked selection
 // between emoji (wrapping at either end), and Space/Enter activate the
-// focused button via native <button> semantics. Buttons get a small
-// hover/tap wiggle and the checked one bobs gently, both skipped under
+// focused button via native <button> semantics. Every button plays a
+// gentle idle float, staggered per index so the row doesn't bob in unison,
+// jumps and spins on hover/tap, and the checked one floats a little more
+// energetically to read as "selected." All of it is skipped under
 // prefers-reduced-motion. See docs/DESIGN_SYSTEM.md §3 (emoji picker) and
 // §4 (accessibility).
 
@@ -19,6 +21,13 @@ export interface EmojiPickerProps {
   onChange: (emoji: Emoji) => void;
   error?: string;
   id: string;
+}
+
+// Deterministic per-button stagger, same idea as ShoutoutCard's hash-based
+// delay: index-driven, not Math.random(), so the row's idle float pattern
+// stays stable across re-renders instead of resetting.
+function idleFloatDelaySeconds(index: number): number {
+  return index * 0.12;
 }
 
 function arrowKeyDelta(key: string): -1 | 1 | null {
@@ -91,15 +100,33 @@ export function EmojiPicker(props: EmojiPickerProps): JSX.Element {
               tabIndex={isTabbable ? 0 : -1}
               onClick={() => onChange(emoji)}
               onKeyDown={(event) => handleKeyDown(event, index)}
-              whileHover={prefersReducedMotion ? undefined : { scale: 1.2, rotate: 10 }}
-              whileTap={prefersReducedMotion ? undefined : { scale: 0.9, rotate: -10 }}
-              animate={
-                isChecked && !prefersReducedMotion
-                  ? {
-                      y: [0, -3, 0],
-                      transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+              whileHover={
+                prefersReducedMotion
+                  ? undefined
+                  : {
+                      scale: 1.3,
+                      rotate: index % 2 === 0 ? 14 : -14,
+                      y: -6,
+                      transition: { type: "spring", stiffness: 400, damping: 12 },
                     }
-                  : { y: 0 }
+              }
+              whileTap={
+                prefersReducedMotion
+                  ? undefined
+                  : { scale: 0.88, rotate: index % 2 === 0 ? -8 : 8, y: 0 }
+              }
+              animate={
+                prefersReducedMotion
+                  ? { y: 0 }
+                  : {
+                      y: isChecked ? [0, -5, 0] : [0, -2.5, 0],
+                      transition: {
+                        duration: isChecked ? 1.3 : 2.4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: idleFloatDelaySeconds(index),
+                      },
+                    }
               }
               className={cn(
                 "flex h-11 w-11 items-center justify-center rounded-xl text-2xl opacity-70 transition-opacity",
