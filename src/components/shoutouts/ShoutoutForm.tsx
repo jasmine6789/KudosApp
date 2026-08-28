@@ -120,7 +120,7 @@ export function ShoutoutForm(props: ShoutoutFormProps): JSX.Element {
       onSubmit={(event) => {
         void handleSubmit(event);
       }}
-      className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5"
+      className="flex flex-col gap-4 rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900 sm:p-5"
     >
       {showSuccess ? (
         <p

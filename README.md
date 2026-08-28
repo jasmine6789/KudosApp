@@ -79,6 +79,37 @@ skip on a small project and easy to notice when they're missing:
 
 ---
 
+## Design system
+
+The visual design is modeled on **[secondsight.ai](https://www.secondsight.ai/)** — an enterprise
+SaaS site with a distinctive look: the **Outfit** typeface, bold uppercase headlines, a vivid green
+primary action color, fully pill-shaped buttons, flat light-gray content blocks with no border or
+shadow, and dramatic full-bleed black sections used for emphasis. This app carries that language
+over directly:
+
+- **Typography** — Outfit throughout, loaded from Google Fonts. The page title sits in a
+  full-bleed black header band, bold, uppercase, always black regardless of the light/dark toggle
+  (the same "high-contrast black section" move SecondSight uses for emphasis on its own site).
+- **Buttons** — fully pill-shaped (`rounded-full`), not just rounded corners. Primary actions are a
+  deep green; secondary/ghost actions are a thin-bordered pill on a transparent background.
+- **Cards** — flat: a light `neutral-100` (dark mode: `neutral-900`) background, no border, no
+  shadow. This replaced the original white-card-with-a-border-and-shadow-sm look with SecondSight's
+  own flat stat-block treatment.
+- **Dark mode** — a true, neutral black (`#0A0A0A`), not a blue-tinted dark, matching the pure black
+  SecondSight uses for its own high-contrast sections.
+
+One color was deliberately **not** copied exactly: SecondSight's actual button green measures about
+2.15:1 contrast with white text — well under the WCAG AA floor (4.5:1) this project already holds
+itself to elsewhere (see the Edge Function's tests asserting no raw error ever reaches the client,
+or the accessible emoji picker). Buttons here use a deeper shade of the same green (`green-700`,
+~5.0:1 contrast) instead of importing an inaccessible color just to match a screenshot exactly.
+
+Every color, shape, and accessibility rule — including the emoji-card color mapping, which is a
+feature specific to this app with no SecondSight equivalent — is documented in full in
+[`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
+---
+
 ## Testing
 
 Both runtimes are tested, using each ecosystem's own tools rather than forcing one test runner across

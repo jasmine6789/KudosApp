@@ -22,17 +22,17 @@ const SKELETON_COUNT = 6;
 const GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 
 const SHIMMER_CLASS =
-  "bg-[length:200%_100%] bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 " +
+  "bg-[length:200%_100%] bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 " +
   "animate-shimmer motion-reduce:animate-none " +
-  "dark:from-slate-800 dark:via-slate-700 dark:to-slate-800";
+  "dark:from-neutral-800 dark:via-neutral-700 dark:to-neutral-800";
 
 function SkeletonCard(): JSX.Element {
   return (
     <div
       aria-hidden="true"
       className={cn(
-        "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900",
-        "border-l-4 border-l-slate-200 dark:border-l-slate-700 sm:p-5",
+        "rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900",
+        "border-l-4 border-l-neutral-300 dark:border-l-neutral-700 sm:p-5",
       )}
     >
       <div className="flex items-start gap-3">
@@ -67,7 +67,7 @@ interface ErrorStateProps {
 function ErrorState(props: ErrorStateProps): JSX.Element {
   const { error, onRetry } = props;
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex flex-col items-center gap-4 rounded-2xl bg-neutral-100 p-8 text-center dark:bg-neutral-900">
       <p role="alert" className="text-sm text-rose-600">
         {error}
       </p>
@@ -80,7 +80,7 @@ function ErrorState(props: ErrorStateProps): JSX.Element {
 
 function EmptyState(): JSX.Element {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl bg-neutral-100 p-8 text-center dark:bg-neutral-900">
       <p className="text-sm text-slate-500 dark:text-slate-400">
         No shoutouts yet — be the first to send one!
       </p>

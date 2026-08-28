@@ -12,20 +12,22 @@ export function App(): JSX.Element {
   const { shoutouts, isLoading, error, addShoutout, refetch } = useShoutouts();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:py-10">
-        <header className="flex items-start justify-between gap-4">
+    <div className="min-h-screen bg-white dark:bg-neutral-950">
+      <header className="bg-black">
+        <div className="mx-auto flex max-w-5xl items-start justify-between gap-4 px-4 py-8 sm:py-10">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-extrabold uppercase tracking-tight text-white sm:text-3xl">
               Team Shoutout Board
             </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-neutral-300">
               Celebrate a teammate — post a quick shoutout for the whole team to see.
             </p>
           </div>
           <ThemeToggle />
-        </header>
+        </div>
+      </header>
 
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:py-10">
         <ShoutoutForm onCreated={addShoutout} />
 
         <ShoutoutGrid shoutouts={shoutouts} isLoading={isLoading} error={error} onRetry={refetch} />

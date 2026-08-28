@@ -18,9 +18,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 type ButtonVariant = NonNullable<ButtonProps["variant"]>;
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: "border border-transparent bg-indigo-600 text-white hover:bg-indigo-700",
+  primary: "border border-transparent bg-green-700 text-white hover:bg-green-800",
   ghost:
-    "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800",
+    "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 dark:border-neutral-700 dark:text-slate-300 dark:hover:bg-neutral-800",
 };
 
 // motion.button's own props type already strips native handlers that
@@ -61,8 +61,8 @@ export function Button(props: ButtonProps): JSX.Element {
       disabled={isDisabled}
       aria-busy={isLoading || undefined}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+        "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-70",
         VARIANT_CLASSES[variant],
         className,

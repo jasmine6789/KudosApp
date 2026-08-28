@@ -28,8 +28,8 @@ export function Input({ label, error, id, className, ...rest }: InputProps): JSX
         aria-describedby={error ? errorId : undefined}
         className={cn(
           "rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900",
-          "placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+          "placeholder:text-slate-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-100 dark:placeholder:text-slate-500",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-70",
           error && "border-rose-500 dark:border-rose-500",
           className,

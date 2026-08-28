@@ -90,8 +90,8 @@ export function EmojiPicker(props: EmojiPickerProps): JSX.Element {
               className={cn(
                 "flex h-11 w-11 items-center justify-center rounded-xl text-2xl opacity-70 transition",
                 "hover:opacity-100 focus-visible:opacity-100",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
-                isChecked && "scale-110 opacity-100 ring-2 ring-indigo-500",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2",
+                isChecked && "scale-110 opacity-100 ring-2 ring-green-700",
               )}
             >
               {emoji}

@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-surface-50 text-surface-900 antialiased dark:bg-surface-950 dark:text-surface-100;
+    @apply bg-white text-slate-700 antialiased dark:bg-neutral-950 dark:text-neutral-100;
   }
 
   /* Respect the user's motion preference regardless of any animation classes
@@ -33,7 +33,7 @@
   /* Sleek custom scrollbar — WebKit */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: theme("colors.surface.300") transparent;
+    scrollbar-color: theme("colors.neutral.300") transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -46,11 +46,11 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-surface-300 dark:bg-surface-700;
+    @apply bg-neutral-300 dark:bg-neutral-700;
     border-radius: 9999px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    @apply bg-surface-400 dark:bg-surface-600;
+    @apply bg-neutral-400 dark:bg-neutral-600;
   }
 }

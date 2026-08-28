@@ -49,7 +49,7 @@ export function ShoutoutCard(props: ShoutoutCardProps): JSX.Element {
       animate={{ opacity: 1, y: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900",
+        "rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900",
         "border-l-4 sm:p-5",
         theme.border,
       )}
