@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted instead of pulled from Google Fonts at request time: one
+   request to the same origin instead of a cross-origin DNS/TLS round trip
+   before the first paint, and it works regardless of CSP font-src rules.
+   Outfit ships as a single variable-font file covering the whole 100-900
+   weight axis, so one @font-face rule with a weight range covers every
+   weight this app actually uses (400/500/600/700/800). See
+   public/fonts/outfit-variable.woff2 and docs/DESIGN_SYSTEM.md §1. */
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/outfit-variable.woff2") format("woff2");
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

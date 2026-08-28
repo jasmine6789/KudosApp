@@ -5,16 +5,18 @@
 // submit attempt), so inline feedback tracks blur *and* keystrokes without a
 // second parsing path. Submission delegates to useCreateShoutout, which owns
 // in-flight/error state; this component only owns the form's own fields and
-// the success/failure banners layered around it. A successful submit also
-// fires a short confetti burst (src/lib/confetti.ts), skipped under
+// the failure banner around it. A successful submit also shows a floating
+// "Shoutout posted!" toast (src/components/ui/Toast.tsx) and fires a
+// confetti burst (src/lib/confetti.ts), both skipped/adjusted under
 // prefers-reduced-motion.
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { Toast } from "@/components/ui/Toast";
 import { EmojiPicker } from "@/components/shoutouts/EmojiPicker";
 import { useCreateShoutout } from "@/hooks/useCreateShoutout";
 import { shoutoutInputSchema } from "@/types/shoutout";
@@ -128,17 +130,7 @@ export function ShoutoutForm(props: ShoutoutFormProps): JSX.Element {
       }}
       className="flex flex-col gap-4 rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900 sm:p-5"
     >
-      {showSuccess ? (
-        <motion.p
-          aria-live="polite"
-          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
-          className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-        >
-          Shoutout posted! 🎉
-        </motion.p>
-      ) : null}
+      <Toast message="Shoutout posted! 🎉" visible={showSuccess} />
 
       {error ? (
         <p aria-live="polite" className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
