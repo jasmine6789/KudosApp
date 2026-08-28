@@ -21,14 +21,15 @@ function loadEnv(): Env {
     const issues = parsed.error.issues
       .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
       .join("\n");
+    const hint =
+      "Copy .env.example to .env.local and fill in the values printed by `supabase start` " +
+      "(for local dev), or set these in your hosting provider's project settings and redeploy " +
+      "(for a deployed build — Vite inlines them at build time, so changing them requires a new build).";
 
     // eslint-disable-next-line no-console -- intentional startup diagnostic, not app logging
-    console.error(
-      `\n[env] Invalid or missing environment variables:\n${issues}\n\n` +
-        "Copy .env.example to .env.local and fill in the values printed by `supabase start`.\n",
-    );
+    console.error(`\n[env] Invalid or missing environment variables:\n${issues}\n\n${hint}\n`);
 
-    throw new Error("Environment validation failed — see console output above for details.");
+    throw new Error(`Missing or invalid environment variables:\n${issues}\n\n${hint}`);
   }
 
   return parsed.data;

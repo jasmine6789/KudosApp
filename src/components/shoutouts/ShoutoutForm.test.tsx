@@ -69,7 +69,11 @@ describe("ShoutoutForm", () => {
     const user = userEvent.setup();
     render(<ShoutoutForm onCreated={vi.fn()} />);
 
-    await user.type(screen.getByLabelText("Message"), "a".repeat(261));
+    // 261 characters pasted in one go — userEvent.type() would simulate 261
+    // individual keystrokes here for no benefit, since this test only cares
+    // about the resulting value, not keystroke-by-keystroke behavior.
+    await user.click(screen.getByLabelText("Message"));
+    await user.paste("a".repeat(261));
 
     const counter = screen.getByText("261 / 280");
     expect(counter).toHaveClass("font-bold", "text-rose-600");
