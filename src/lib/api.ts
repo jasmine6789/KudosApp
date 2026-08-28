@@ -1,5 +1,5 @@
 // Typed client wrapper around the `shoutouts` Edge Function. All Supabase
-// REST/Edge Function calls in the app must go through this module — no raw
+// REST/Edge Function calls in the app must go through this module, no raw
 // `fetch` calls scattered across components/hooks.
 
 import { env } from "@/config/env";
@@ -46,7 +46,7 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
       headers: buildHeaders(init?.headers),
     });
   } catch {
-    throw new ApiError("Network error — could not reach the server", 0, undefined);
+    throw new ApiError("Network error: could not reach the server", 0, undefined);
   }
 
   const body = await parseJsonSafely(response);
@@ -66,7 +66,7 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
       throw new ApiError(message ?? "Invalid request", 400, details);
     }
     if (response.status >= 500) {
-      throw new ApiError(message ?? "Server error — please try again", response.status, details);
+      throw new ApiError(message ?? "Server error, please try again", response.status, details);
     }
     throw new ApiError(message ?? "Request failed", response.status, details);
   }

@@ -22,8 +22,8 @@ assignees: []
 
 <!-- What other approaches did you consider? Why is the proposed solution preferred? -->
 
-1. **Alternative A:** ... — Rejected because ...
-2. **Alternative B:** ... — Rejected because ...
+1. **Alternative A:** ... (Rejected because ...)
+2. **Alternative B:** ... (Rejected because ...)
 
 ## Acceptance Criteria
 

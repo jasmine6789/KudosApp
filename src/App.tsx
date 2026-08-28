@@ -1,6 +1,6 @@
 // Top-level composition root: renders the page chrome (header, title, theme
 // toggle), then wires the single useShoutouts() instance into the form and
-// grid below it. Owns no business logic of its own — it only lifts state
+// grid below it. Owns no business logic of its own, it only lifts state
 // from the hook and threads the props each child already contracts for.
 
 import { useShoutouts } from "@/hooks/useShoutouts";
@@ -20,7 +20,7 @@ export function App(): JSX.Element {
               Team Shoutout Board
             </h1>
             <p className="mt-1 text-sm text-neutral-300">
-              Celebrate a teammate — post a quick shoutout for the whole team to see.
+              Celebrate a teammate. Post a quick shoutout for the whole team to see.
             </p>
           </div>
           <ThemeToggle />

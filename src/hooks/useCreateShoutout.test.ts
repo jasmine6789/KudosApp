@@ -1,7 +1,7 @@
 // Exercises useCreateShoutout against a mocked "@/lib/api" module (per
 // docs/TESTING_GUIDELINES.md §3): the isSubmitting flag over the lifetime of
 // a submit() call, the success/ApiError-failure return branches, and
-// clearError. ApiError itself is the real class — only createShoutout is
+// clearError. ApiError itself is the real class, only createShoutout is
 // mocked.
 
 import { act, renderHook } from "@testing-library/react";
@@ -107,7 +107,7 @@ describe("useCreateShoutout", () => {
 
   it("resets error to null via clearError", async () => {
     vi.mocked(createShoutout).mockRejectedValue(
-      new ApiError("Server error — please try again", 500),
+      new ApiError("Server error, please try again", 500),
     );
 
     const { result } = renderHook(() => useCreateShoutout());

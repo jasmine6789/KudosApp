@@ -12,7 +12,7 @@ import { ShoutoutCard } from "@/components/shoutouts/ShoutoutCard";
 import type { Shoutout } from "@/types/shoutout";
 
 // Only useReducedMotion is mocked (defaulting to "no preference") so the
-// reduced-motion branch below can be flipped on deterministically — motion,
+// reduced-motion branch below can be flipped on deterministically, motion,
 // AnimatePresence, etc. stay real.
 vi.mock("framer-motion", async (importOriginal) => {
   const actual = await importOriginal<typeof import("framer-motion")>();

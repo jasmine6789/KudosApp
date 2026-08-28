@@ -5,7 +5,7 @@ node_modules/
 dist/
 dist-ssr/
 
-# Env files — never commit real secrets
+# Env files: never commit real secrets
 .env
 .env.local
 .env.*.local
@@ -25,7 +25,7 @@ supabase/.temp/
 .vscode/*
 !.vscode/extensions.json
 
-# AI-assistant working notes — not part of the shipped project
+# AI-assistant working notes: not part of the shipped project
 CLAUDE.md
 .github/CLAUDE.md
 .claude/

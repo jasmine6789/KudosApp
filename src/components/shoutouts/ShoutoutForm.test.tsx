@@ -9,6 +9,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import confetti from "canvas-confetti";
 import { ShoutoutForm } from "@/components/shoutouts/ShoutoutForm";
 import { ApiError, createShoutout } from "@/lib/api";
 import type { Shoutout } from "@/types/shoutout";
@@ -69,7 +70,7 @@ describe("ShoutoutForm", () => {
     const user = userEvent.setup();
     render(<ShoutoutForm onCreated={vi.fn()} />);
 
-    // 261 characters pasted in one go — userEvent.type() would simulate 261
+    // 261 characters pasted in one go: userEvent.type() would simulate 261
     // individual keystrokes here for no benefit, since this test only cares
     // about the resulting value, not keystroke-by-keystroke behavior.
     await user.click(screen.getByLabelText("Message"));
@@ -116,17 +117,19 @@ describe("ShoutoutForm", () => {
     expect(screen.getByLabelText("From")).toHaveValue("");
     expect(screen.getByLabelText("To")).toHaveValue("");
     expect(screen.getByLabelText("Message")).toHaveValue("");
+    expect(screen.getByText("Shoutout posted! 🎉")).toBeInTheDocument();
+    expect(confetti).toHaveBeenCalledTimes(1);
   });
 
   it("shows the server error banner without clearing field values when the mocked call rejects", async () => {
     const user = userEvent.setup();
-    mockedCreateShoutout.mockRejectedValue(new ApiError("Server error — please try again", 500));
+    mockedCreateShoutout.mockRejectedValue(new ApiError("Server error, please try again", 500));
 
     render(<ShoutoutForm onCreated={vi.fn()} />);
     await fillValidForm(user);
     await user.click(screen.getByRole("button", { name: "Post shoutout" }));
 
-    expect(await screen.findByText("Server error — please try again")).toBeInTheDocument();
+    expect(await screen.findByText("Server error, please try again")).toBeInTheDocument();
     expect(screen.getByLabelText("From")).toHaveValue(VALID_SHOUTOUT.from_name);
     expect(screen.getByLabelText("To")).toHaveValue(VALID_SHOUTOUT.to_name);
     expect(screen.getByLabelText("Message")).toHaveValue(VALID_SHOUTOUT.message);

@@ -1,6 +1,6 @@
 // Per-emoji visual accents for shoutout cards (left border + icon well),
 // keyed off the same EMOJI_ALLOWLIST used for validation so the two can
-// never drift apart — see docs/DESIGN_SYSTEM.md §2 for the source table.
+// never drift apart, see docs/DESIGN_SYSTEM.md §2 for the source table.
 
 import { EMOJI_ALLOWLIST, type Emoji } from "@/types/shoutout";
 

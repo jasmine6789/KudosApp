@@ -1,6 +1,6 @@
 // Deno lint config for the Supabase Edge Functions in this directory.
 // "no-import-prefix" is excluded because pinned "npm:"/"jsr:" specifiers are
-// the Supabase-recommended import style for edge functions — this repo
+// the Supabase-recommended import style for edge functions. This repo
 // intentionally does not use a deno.json import map to alias them to bare
 // specifiers.
 {

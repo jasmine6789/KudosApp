@@ -12,7 +12,7 @@
   }
 
   /* Respect the user's motion preference regardless of any animation classes
-     applied elsewhere — see docs/DESIGN_SYSTEM.md §4. */
+     applied elsewhere, see docs/DESIGN_SYSTEM.md §4. */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -30,7 +30,7 @@
 }
 
 @layer utilities {
-  /* Sleek custom scrollbar — WebKit */
+  /* Sleek custom scrollbar (WebKit) */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: theme("colors.neutral.300") transparent;

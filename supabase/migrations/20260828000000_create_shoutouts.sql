@@ -1,6 +1,6 @@
 -- Migration: create_shoutouts
 -- Creates the `shoutouts` table backing the Team Shoutout Board.
--- No authentication is required for this project — reads and inserts are
+-- No authentication is required for this project: reads and inserts are
 -- public by design; updates and deletes are denied entirely at the RLS layer.
 
 create extension if not exists "pgcrypto";
@@ -58,7 +58,7 @@ create policy "Allow public insert access"
   with check (true);
 
 -- Explicitly restrict UPDATE and DELETE. With RLS enabled and no matching
--- policy, Postgres denies the operation by default — these are written out
+-- policy, Postgres denies the operation by default. These are written out
 -- anyway so the "no edits, no deletes" rule is a documented, deliberate
 -- decision rather than an accident of omission.
 create policy "Restrict update access"

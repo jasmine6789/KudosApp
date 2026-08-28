@@ -154,4 +154,4 @@ jobs:
           TAG="${{ needs.version-and-tag.outputs.new_tag }}"
           FN_STATUS="${{ needs.deploy-edge-function.result }}"
           FE_STATUS="${{ needs.build-and-package-frontend.result }}"
-          echo "Release $TAG — edge function: $FN_STATUS, frontend build: $FE_STATUS"
+          echo "Release $TAG, edge function: $FN_STATUS, frontend build: $FE_STATUS"

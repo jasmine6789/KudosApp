@@ -46,9 +46,9 @@ flowchart LR
 
 1. The React app renders `ShoutoutForm` and `ShoutoutGrid`, both backed by hooks in `src/hooks/`.
 2. On submit, `ShoutoutForm` validates against the shared Zod schema (`src/types/shoutout.ts`) for instant feedback, then calls `useCreateShoutout`, which `POST`s JSON to the `shoutouts` Edge Function.
-3. The Edge Function re-validates the payload with its own copy of the schema (the actual security boundary — the frontend check is UX only), inserts via the service-role Supabase client, and returns `{ success, data }` or `{ success: false, error }`.
+3. The Edge Function re-validates the payload with its own copy of the schema (the actual security boundary: the frontend check is UX only), inserts via the service-role Supabase client, and returns `{ success, data }` or `{ success: false, error }`.
 4. `useShoutouts` fetches the list on mount via `GET`, ordered newest-first (enforced both by the query and by the `created_at DESC` index).
-5. RLS on the `shoutouts` table independently enforces that only `SELECT` and `INSERT` are possible — even if application code had a bug, the database itself rejects `UPDATE`/`DELETE`.
+5. RLS on the `shoutouts` table independently enforces that only `SELECT` and `INSERT` are possible: even if application code had a bug, the database itself rejects `UPDATE`/`DELETE`.
 
 ---
 
@@ -90,17 +90,17 @@ supabase start                      # boots local Postgres, Auth, Storage, Studi
 supabase db reset                   # applies supabase/migrations/*.sql to the fresh local DB
 ```
 
-`supabase start` prints your local API URL, anon key, and service-role key — copy them into `.env.local`. Local Studio (DB browser) is typically at `http://localhost:54323`.
+`supabase start` prints your local API URL, anon key, and service-role key. Copy them into `.env.local`. Local Studio (DB browser) is typically at `http://localhost:54323`.
 
 ### Running the App Locally
 
 Two processes run side by side:
 
 ```bash
-# Terminal 1 — Edge Function
+# Terminal 1: Edge Function
 supabase functions serve shoutouts --env-file .env.local
 
-# Terminal 2 — Frontend
+# Terminal 2: Frontend
 npm run dev
 ```
 
@@ -128,7 +128,7 @@ Frontend types for the `shoutouts` table are generated from the live schema, nev
 supabase gen types typescript --local > src/types/database.types.ts
 ```
 
-Run this after every migration change and commit the regenerated file alongside the migration in the same PR. `src/types/shoutout.ts` (the Zod-derived API contract type) is separate from `database.types.ts` (the raw table shape) — the former describes what the API accepts/returns, the latter describes what Postgres stores; they're kept in sync by hand since one is a Zod schema and the other is CLI-generated.
+Run this after every migration change and commit the regenerated file alongside the migration in the same PR. `src/types/shoutout.ts` (the Zod-derived API contract type) is separate from `database.types.ts` (the raw table shape). The former describes what the API accepts/returns, the latter describes what Postgres stores; they're kept in sync by hand since one is a Zod schema and the other is CLI-generated.
 
 ---
 
@@ -192,7 +192,7 @@ If deploying under a subpath (`username.github.io/repo-name`), set `base` in `vi
 
 ## 5. Related Documents
 
-- [`README.md`](../README.md) — project overview, setup, and the techniques used
-- [`docs/DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) — visual/UX standards
-- [`docs/TESTING_GUIDELINES.md`](./TESTING_GUIDELINES.md) — testing strategy
-- [`.env.example`](../.env.example) — environment variable reference
+- [`README.md`](../README.md): project overview, setup, and the techniques used
+- [`docs/DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md): visual/UX standards
+- [`docs/TESTING_GUIDELINES.md`](./TESTING_GUIDELINES.md): testing strategy
+- [`.env.example`](../.env.example): environment variable reference

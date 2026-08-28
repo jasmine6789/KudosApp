@@ -1,7 +1,7 @@
 // Integration coverage for ShoutoutGrid's presentational state machine: all
 // four branches (loading, error, empty, populated) are driven purely by
 // props, so these tests assert each branch renders the right markup without
-// mocking anything — the grid never fetches data on its own, and it never
+// mocking anything: the grid never fetches data on its own, and it never
 // re-sorts the list it is given.
 
 import { describe, expect, it, vi } from "vitest";
@@ -48,7 +48,7 @@ describe("ShoutoutGrid", () => {
   it("renders the empty-state copy when shoutouts is empty and not loading/erroring", () => {
     render(<ShoutoutGrid shoutouts={[]} isLoading={false} error={null} onRetry={vi.fn()} />);
 
-    expect(screen.getByText("No shoutouts yet — be the first to send one!")).toBeInTheDocument();
+    expect(screen.getByText("No shoutouts yet. Be the first to send one!")).toBeInTheDocument();
   });
 
   it("renders an error state with a retry button that calls onRetry when clicked", async () => {
@@ -58,13 +58,13 @@ describe("ShoutoutGrid", () => {
       <ShoutoutGrid
         shoutouts={[]}
         isLoading={false}
-        error="Network error — could not reach the server"
+        error="Network error: could not reach the server"
         onRetry={onRetry}
       />,
     );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Network error — could not reach the server",
+      "Network error: could not reach the server",
     );
 
     await user.click(screen.getByRole("button", { name: "Try again" }));

@@ -14,10 +14,10 @@ assignees: []
 
 <!-- Choose one -->
 
-- [ ] **Critical** — Production down, data loss, security issue
-- [ ] **High** — Major feature broken, no workaround
-- [ ] **Medium** — Feature partially broken, workaround exists
-- [ ] **Low** — Cosmetic issue, minor inconvenience
+- [ ] **Critical**: Production down, data loss, security issue
+- [ ] **High**: Major feature broken, no workaround
+- [ ] **Medium**: Feature partially broken, workaround exists
+- [ ] **Low**: Cosmetic issue, minor inconvenience
 
 ## Steps to Reproduce
 
@@ -62,7 +62,7 @@ Paste relevant logs / stack trace here
 
 ## Possible Root Cause (optional)
 
-<!-- If you have a hypothesis, share it — e.g. Zod validation gap, RLS policy, CORS, race condition in the form. -->
+<!-- If you have a hypothesis, share it, e.g. Zod validation gap, RLS policy, CORS, race condition in the form. -->
 
 ## Additional Context
 

@@ -1,10 +1,10 @@
 # Builds and serves the Team Shoutout Board frontend as a static bundle.
 # The Supabase Edge Function is deployed separately via `supabase functions
-# deploy` (see docs/ARCHITECTURE_AND_SETUP.md §4) — it is not containerized
+# deploy` (see docs/ARCHITECTURE_AND_SETUP.md §4). It is not containerized
 # here, since it runs on Supabase's own edge runtime, not this image.
 #
 # VITE_* values are build-time only (Vite inlines them into the static
-# bundle) — pass them as --build-arg, never bake real secrets into the
+# bundle). Pass them as --build-arg, never bake real secrets into the
 # image. None of them are secrets: VITE_SUPABASE_ANON_KEY is the public,
 # RLS-scoped anon key, safe to ship in a client bundle.
 #

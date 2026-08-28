@@ -1,6 +1,6 @@
 // Presentational switchboard for the shoutouts feed: given the loading/error/
 // data state owned by useShoutouts, it renders exactly one of four mutually
-// exclusive views — skeleton placeholders, a retryable error message, a calm
+// exclusive views: skeleton placeholders, a retryable error message, a calm
 // empty state, or the populated card grid. It fetches nothing itself; all
 // data and callbacks arrive as props.
 
@@ -82,7 +82,7 @@ function EmptyState(): JSX.Element {
   return (
     <div className="rounded-2xl bg-neutral-100 p-8 text-center dark:bg-neutral-900">
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        No shoutouts yet — be the first to send one!
+        No shoutouts yet. Be the first to send one!
       </p>
     </div>
   );

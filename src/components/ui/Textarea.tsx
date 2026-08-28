@@ -1,4 +1,4 @@
-// Generic labeled multi-line input primitive — same label/error/aria
+// Generic labeled multi-line input primitive, same label/error/aria
 // contract as Input.tsx, for a <textarea>. Deliberately does not render a
 // character counter: the owning form holds the live value and the
 // remaining-count logic, this primitive only knows about its own field.

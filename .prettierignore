@@ -2,7 +2,7 @@
 dist
 coverage
 
-# Deno formats its own tree with `deno fmt` — see .lintstagedrc.json
+# Deno formats its own tree with `deno fmt`. See .lintstagedrc.json
 supabase/functions
 src/types/database.types.ts
 

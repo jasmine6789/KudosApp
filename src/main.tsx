@@ -2,7 +2,7 @@
 // declared in index.html. Loading "./App" is deferred behind a dynamic
 // import specifically so a startup-time failure (most commonly: missing or
 // invalid VITE_* environment variables, thrown by src/config/env.ts at
-// module-evaluation time) can be caught and shown on the page — a
+// module-evaluation time) can be caught and shown on the page. A
 // synchronous top-level import can't be try/caught, and would otherwise
 // leave visitors looking at a silently blank #root with no clue why.
 

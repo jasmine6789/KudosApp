@@ -5,10 +5,13 @@
 // submit attempt), so inline feedback tracks blur *and* keystrokes without a
 // second parsing path. Submission delegates to useCreateShoutout, which owns
 // in-flight/error state; this component only owns the form's own fields and
-// the success/failure banners layered around it.
+// the success/failure banners layered around it. A successful submit also
+// fires a short confetti burst (src/lib/confetti.ts), skipped under
+// prefers-reduced-motion.
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -17,6 +20,7 @@ import { useCreateShoutout } from "@/hooks/useCreateShoutout";
 import { shoutoutInputSchema } from "@/types/shoutout";
 import type { Emoji, Shoutout } from "@/types/shoutout";
 import { cn } from "@/lib/utils";
+import { celebrateNewShoutout } from "@/lib/confetti";
 
 export interface ShoutoutFormProps {
   onCreated: (shoutout: Shoutout) => void;
@@ -62,6 +66,7 @@ function getFieldErrors(values: FormValues): FieldErrors {
 export function ShoutoutForm(props: ShoutoutFormProps): JSX.Element {
   const { onCreated } = props;
   const { submit, isSubmitting, error } = useCreateShoutout();
+  const prefersReducedMotion = useReducedMotion();
 
   const [values, setValues] = useState<FormValues>(EMPTY_VALUES);
   const [touched, setTouched] = useState<TouchedState>(EMPTY_TOUCHED);
@@ -108,6 +113,7 @@ export function ShoutoutForm(props: ShoutoutFormProps): JSX.Element {
       setTouched(EMPTY_TOUCHED);
       setHasSubmitted(false);
       setShowSuccess(true);
+      celebrateNewShoutout(prefersReducedMotion ?? false);
     }
   }
 
@@ -123,12 +129,15 @@ export function ShoutoutForm(props: ShoutoutFormProps): JSX.Element {
       className="flex flex-col gap-4 rounded-2xl bg-neutral-100 p-4 dark:bg-neutral-900 sm:p-5"
     >
       {showSuccess ? (
-        <p
+        <motion.p
           aria-live="polite"
-          className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
+          className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
         >
-          Shoutout posted!
-        </p>
+          Shoutout posted! 🎉
+        </motion.p>
       ) : null}
 
       {error ? (

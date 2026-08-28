@@ -1,6 +1,6 @@
 // Unit tests for the typed fetch wrapper around the shoutouts Edge
 // Function. This is the one module allowed to mock global fetch directly
-// (per docs/TESTING_GUIDELINES.md §3) since it IS the network boundary —
+// (per docs/TESTING_GUIDELINES.md §3) since it IS the network boundary:
 // every other module mocks this one instead of touching fetch itself.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -99,7 +99,7 @@ describe("getShoutouts", () => {
     await getShoutouts().then(
       () => expect.unreachable("getShoutouts should have thrown"),
       (err: unknown) => {
-        expect((err as ApiError).message).toBe("Server error — please try again");
+        expect((err as ApiError).message).toBe("Server error, please try again");
       },
     );
   });

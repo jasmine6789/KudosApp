@@ -1,6 +1,6 @@
 // Unit coverage for ThemeToggle. useTheme is mocked so each test controls
 // the current theme directly rather than depending on localStorage/OS
-// media-query state — this component's only job is rendering that state
+// media-query state. This component's only job is rendering that state
 // and delegating clicks to toggleTheme, so that's exactly what's asserted.
 
 import { describe, expect, it, vi } from "vitest";

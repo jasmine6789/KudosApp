@@ -8,14 +8,14 @@ Closes #
 
 ## Type of Change
 
-- [ ] `feat` — New feature
-- [ ] `fix` — Bug fix
-- [ ] `refactor` — Code change that neither fixes a bug nor adds a feature
-- [ ] `perf` — Performance improvement
-- [ ] `docs` — Documentation only
-- [ ] `test` — Adding or correcting tests
-- [ ] `build` / `ci` — Build system or CI/CD changes
-- [ ] `chore` — Tooling, dependency bumps, misc.
+- [ ] `feat`: New feature
+- [ ] `fix`: Bug fix
+- [ ] `refactor`: Code change that neither fixes a bug nor adds a feature
+- [ ] `perf`: Performance improvement
+- [ ] `docs`: Documentation only
+- [ ] `test`: Adding or correcting tests
+- [ ] `build` / `ci`: Build system or CI/CD changes
+- [ ] `chore`: Tooling, dependency bumps, misc.
 - [ ] **Breaking change** (requires a `BREAKING CHANGE:` footer in the commit)
 
 ## Changes Made

@@ -1,271 +1,327 @@
 # Team Shoutout Board
 
-A small internal tool for giving teammates quick public kudos. Anyone can open the board, see every
-shoutout that's been posted (newest first), and add their own — no sign-up, no login, no accounts.
-You type who it's from, who it's for, a short message, and pick an emoji, and it shows up on the
-board for everyone.
+A small internal tool for giving teammates quick, public kudos. Anyone can open the board, see
+every shoutout that has been posted (newest first), and add their own. No sign-up, no login, no
+accounts. Type who it is from, who it is for, a short message, pick an emoji, and it shows up on
+the board for everyone.
 
-It's intentionally a small app. The interesting part isn't the feature count — it's a frontend, an
-API, and a database all working together cleanly, with the kind of details (validation, error
-handling, accessibility, tests) that separate a "looks done" project from one that actually is.
+**Live site:** [https://shoutout-rho.vercel.app/](https://shoutout-rho.vercel.app/)
 
-**Live stack:** React + TypeScript on the frontend, a single Supabase Edge Function (Deno) as the
-API, Supabase Postgres for storage. No custom backend server to run or host — Supabase provides all
-of that as a managed service.
+**Stack:** React + TypeScript (frontend) · Supabase Edge Function on Deno (API) · Supabase
+Postgres (database) · Tailwind CSS · Framer Motion
 
 ---
 
-## How it's put together
+## 1. Overview
 
-**The database** is one table, `shoutouts`, with the five fields the board actually needs:
-`id`, `from_name`, `to_name`, `message`, `emoji`, `created_at`. Row Level Security is turned on, and
-only two policies exist: anyone can `SELECT`, anyone can `INSERT`. There's no `UPDATE` or `DELETE`
-policy at all — with RLS on and no matching policy, Postgres denies those operations by default, so
-"no editing, no deleting" is enforced by the database itself, not just by the app choosing not to
-expose those buttons. The migration SQL and a small seed script (five sample shoutouts, so the board
-isn't empty on first run) both live in `supabase/`.
+This is intentionally a small app. The interesting part is not the feature count, it is a
+frontend, an API, and a database working together cleanly, with the details (validation, error
+handling, accessibility, security, tests) that separate a project that "looks done" from one that
+actually is.
 
-**The API** is one Supabase Edge Function — a small Deno script that handles `GET` (list everything,
-newest first) and `POST` (validate and insert). There's no framework here, just `Deno.serve` and a
-couple of plain functions, which keeps the whole thing readable in one file. Every request gets CORS
-headers, `OPTIONS` preflight is handled explicitly, and every response comes back in one of two
-shapes: `{ success: true, data }` or `{ success: false, error, details? }`. That consistency means the
-frontend never has to guess what a response looks like.
+Everything below is organized so a reviewer can quickly check:
 
-Validation happens twice, and deliberately so. The **Edge Function** validates every `POST` body with
-a Zod schema before it goes anywhere near the database — that's the real security boundary, since a
-client can send anything regardless of what the UI allows. The **frontend** has its own copy of
-essentially the same schema, used only to give people instant feedback while typing (a red border and
-a message the moment a field goes invalid, no round trip to the server needed). If the two schemas
-ever drift apart, the backend one wins — it's the one actually protecting the database.
-
-**The frontend** is a Vite + React app with a fairly conventional shape: generic, reusable pieces live
-in `src/components/ui/` (a `Button`, an `Input`, a `Spinner`, a `Textarea`) and know nothing about
-shoutouts specifically; the feature itself lives in `src/components/shoutouts/` (`ShoutoutForm`,
-`ShoutoutCard`, `ShoutoutGrid`, `EmojiPicker`). Data fetching and mutation logic don't live inside
-components at all — they're pulled out into two hooks, `useShoutouts` (owns the list, loading state,
-and error state) and `useCreateShoutout` (owns the submit-in-flight state for the form). Components
-just call the hooks and render what comes back; nothing does its own `fetch`.
+- What was built and how ([§3 Architecture](#3-architecture), [§4 Design System](#4-design-system))
+- That it is actually secure and tested ([§5 Security](#5-security), [§6 Testing](#6-testing))
+- That it meets the brief's own evaluation criteria ([§7 Requirements Coverage](#7-requirements-coverage))
+- What goes beyond the brief ([§8 Creative Additions](#8-creative-additions))
+- How to run it yourself ([§9 Self-Deployment Steps](#9-self-deployment-steps))
 
 ---
 
-## The techniques, and why they're there
+## 2. Quick Facts
 
-A few choices are worth calling out specifically, because they're the kind of thing that's easy to
-skip on a small project and easy to notice when they're missing:
+|                      |                                                             |
+| -------------------- | ----------------------------------------------------------- |
+| **Live URL**         | [shoutout-rho.vercel.app](https://shoutout-rho.vercel.app/) |
+| **Frontend hosting** | Vercel (static build)                                       |
+| **Backend hosting**  | Supabase (managed Postgres + Edge Functions)                |
+| **Authentication**   | None, by design (the brief explicitly excludes it)          |
+| **Frontend tests**   | 70 passing, 98%+ coverage                                   |
+| **Backend tests**    | 21 passing (Deno test runner)                               |
+| **Docker image**     | Included, optional alternative to Vercel                    |
 
-- **Strict TypeScript, no escape hatches.** There isn't a single `any` anywhere in the codebase —
+---
+
+## 3. Architecture
+
+### Database
+
+- One table, `shoutouts`, with the five fields the board needs: `id`, `from_name`, `to_name`,
+  `message`, `emoji`, `created_at`.
+- Row Level Security is enabled with exactly two policies: anyone can `SELECT`, anyone can
+  `INSERT`.
+- There is no `UPDATE` or `DELETE` policy at all. With RLS on and no matching policy, Postgres
+  denies those operations by default, so "no editing, no deleting" is enforced by the database
+  itself, not just by the app choosing not to expose those buttons.
+- Migration SQL and a small seed script (five sample shoutouts) both live in `supabase/`.
+
+### API (Edge Function)
+
+- One Supabase Edge Function, a small Deno script that handles `GET` (list everything, newest
+  first) and `POST` (validate and insert).
+- No framework: just `Deno.serve` and a handful of plain functions, kept readable in one file.
+- Every request gets CORS headers, `OPTIONS` preflight is handled explicitly, and every response
+  comes back in one of two shapes: `{ success: true, data }` or `{ success: false, error, details? }`.
+- Validation happens with a Zod schema before anything touches the database. That is the real
+  security boundary: a client can send anything regardless of what the UI allows.
+- The frontend keeps its own copy of essentially the same schema, used only for instant inline
+  feedback while typing. If the two schemas ever drift apart, the backend one wins, since it is
+  the one actually protecting the database.
+
+### Frontend
+
+- Vite + React with a conventional split: generic, reusable pieces live in `src/components/ui/`
+  (`Button`, `Input`, `Textarea`, `Spinner`) and know nothing about shoutouts specifically. The
+  feature itself lives in `src/components/shoutouts/` (`ShoutoutForm`, `ShoutoutCard`,
+  `ShoutoutGrid`, `EmojiPicker`).
+- Data fetching and mutation logic live in two hooks, not inside components: `useShoutouts` (owns
+  the list, loading state, error state) and `useCreateShoutout` (owns the submit-in-flight state).
+  Components call the hooks and render what comes back. Nothing calls `fetch` directly.
+- The only module allowed to call `fetch` at all is `src/lib/api.ts`. That is what makes it
+  possible to write hook and component tests that never touch the network: they mock that one
+  module, not the global `fetch`.
+
+### Notable engineering choices
+
+- **Strict TypeScript, no escape hatches.** There is not a single `any` anywhere in the codebase.
   ESLint and `tsc --noEmit` both fail the build if one shows up. Every exported function has an
-  explicit return type rather than relying on inference across a module boundary, which makes it much
-  harder for a type to quietly change shape somewhere and only surface as a runtime bug.
-- **The Edge Function never leaks internals.** A failed database query gets logged server-side with
-  the real Postgres error, but the client only ever sees a short, generic message like "Failed to
-  create shoutout." No stack traces, no raw error strings, no table names, ever cross that boundary.
-  This is asserted in the test suite, not just assumed.
-- **The emoji picker is a real accessible widget, not a styled `<select>` or a row of clickable
-  `<div>`s.** It's built as a proper `radiogroup`/`radio` pattern: one tab stop for the whole group,
-  arrow keys move the selection (wrapping at either end), and the currently-selected emoji is the only
-  one in the tab order — the same behavior a native radio button group gives you for free, reimplemented
-  by hand because a styled emoji grid isn't a native form control.
-- **Reduced motion is treated as correctness, not polish.** New cards animate in with a small fade and
-  rise, but that's fully skipped — not just made shorter — for anyone whose OS says they'd rather not
-  see it (`prefers-reduced-motion`, read via Framer Motion's `useReducedMotion` hook).
-- **Dark mode isn't a CSS trick bolted on at the end.** Every single color in the design has a
-  dark-mode pairing from the start (Tailwind's `dark:` variant), the toggle persists your choice to
-  `localStorage`, and it falls back to your OS's preference the first time you visit.
-- **The one place that's allowed to call `fetch` is `src/lib/api.ts`.** Everything else — hooks,
-  components — goes through it. That's what makes it possible to write hook and component tests that
-  never touch the network: they mock that one module, not the global `fetch`.
+  explicit return type instead of relying on inference across a module boundary.
+- **The Edge Function never leaks internals.** A failed database query is logged server-side with
+  the real Postgres error, but the client only ever sees a short, generic message such as "Failed
+  to create shoutout." No stack traces, no raw error strings, no table names ever cross that
+  boundary. This is asserted in the test suite, not just assumed.
+- **The emoji picker is a real accessible widget**, not a styled `<select>` or a row of clickable
+  `<div>`s. It is a proper `radiogroup`/`radio` pattern: one tab stop for the whole group, arrow
+  keys move the selection (wrapping at either end), Space/Enter select.
+- **Reduced motion is treated as correctness, not polish.** Every animation in the app, including
+  the emoji wiggle and the confetti burst, is fully skipped (not just shortened) for anyone whose
+  OS requests less motion.
+- **Dark mode is not a CSS trick bolted on at the end.** Every color in the design has a
+  dark-mode pairing from the start, the toggle persists to `localStorage`, and it falls back to
+  the visitor's OS preference on first visit.
 
 ---
 
-## Design system
+## 4. Design System
 
-The visual design is modeled on **[secondsight.ai](https://www.secondsight.ai/)** — an enterprise
-SaaS site with a distinctive look: the **Outfit** typeface, bold uppercase headlines, a vivid green
+The visual design is modeled on [secondsight.ai](https://www.secondsight.ai/), an enterprise SaaS
+site with a distinctive look: the Outfit typeface, bold uppercase headlines, a vivid green
 primary action color, fully pill-shaped buttons, flat light-gray content blocks with no border or
-shadow, and dramatic full-bleed black sections used for emphasis. This app carries that language
-over directly:
+shadow, and dramatic full-bleed black sections used for emphasis.
 
-- **Typography** — Outfit throughout, loaded from Google Fonts. The page title sits in a
-  full-bleed black header band, bold, uppercase, always black regardless of the light/dark toggle
-  (the same "high-contrast black section" move SecondSight uses for emphasis on its own site).
-- **Buttons** — fully pill-shaped (`rounded-full`), not just rounded corners. Primary actions are a
-  deep green; secondary/ghost actions are a thin-bordered pill on a transparent background.
-- **Cards** — flat: a light `neutral-100` (dark mode: `neutral-900`) background, no border, no
-  shadow. This replaced the original white-card-with-a-border-and-shadow-sm look with SecondSight's
-  own flat stat-block treatment.
-- **Dark mode** — a true, neutral black (`#0A0A0A`), not a blue-tinted dark, matching the pure black
-  SecondSight uses for its own high-contrast sections.
+- **Typography:** Outfit throughout, loaded from Google Fonts. The page title sits in a
+  full-bleed black header band, bold and uppercase, always black regardless of the light/dark
+  toggle.
+- **Buttons:** fully pill-shaped (`rounded-full`), not just rounded corners. Primary actions are
+  a deep green; secondary/ghost actions are a thin-bordered pill on a transparent background.
+- **Cards:** flat, a light `neutral-100` (dark mode: `neutral-900`) background, no border, no
+  shadow, matching SecondSight's own stat-block treatment.
+- **Dark mode:** a true, neutral black (`#0A0A0A`), not a blue-tinted dark.
+- **One deliberate deviation:** SecondSight's literal button green measures about 2.15:1 contrast
+  with white text, well under the WCAG AA floor (4.5:1) this project holds itself to everywhere
+  else. Buttons here use a deeper shade of the same green (`green-700`, about 5.0:1 contrast)
+  instead of importing an inaccessible color just to match a screenshot exactly.
 
-One color was deliberately **not** copied exactly: SecondSight's actual button green measures about
-2.15:1 contrast with white text — well under the WCAG AA floor (4.5:1) this project already holds
-itself to elsewhere (see the Edge Function's tests asserting no raw error ever reaches the client,
-or the accessible emoji picker). Buttons here use a deeper shade of the same green (`green-700`,
-~5.0:1 contrast) instead of importing an inaccessible color just to match a screenshot exactly.
-
-Every color, shape, and accessibility rule — including the emoji-card color mapping, which is a
-feature specific to this app with no SecondSight equivalent — is documented in full in
+Full rules, every token, and the reasoning behind each one are documented in
 [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
 ---
 
-## Testing
+## 5. Security
 
-Both runtimes are tested, using each ecosystem's own tools rather than forcing one test runner across
-a Node/Vite project and a Deno project:
+This is a public, no-auth board, so the threat model is scoped accordingly: the goal is to stop
+spam, injection, and information leakage, not to protect private data (there is none) or gate
+access (the brief explicitly excludes authentication).
 
-- **Frontend (Vitest + React Testing Library):** 70 tests across the shared validation schema, the
-  emoji theme, both data hooks, and every component. Coverage sits at 98%+ overall, with every
-  component file at 100%. The handful of lines that aren't covered are genuinely unreachable in a
-  browser (an `SSR`-style guard for a project that never runs server-side) or "should never happen"
-  invariant checks — they're called out as such rather than padded with tests that don't test
-  anything real.
-- **Edge Function (Deno's built-in test runner):** 18 tests covering validation edge cases (a message
-  one character over the limit, an emoji outside the allowlist, a missing field), the `GET`/`POST`
-  success paths, the `OPTIONS`/CORS preflight, and — importantly — that a raw database error never
-  makes it into an API response.
-
-Every test was actually run, not just written: `npm run lint`, `npm run typecheck`, the full Vitest
-suite, `npm run build`, and the full Deno lint/format/type-check/test chain all pass clean as this
-repo stands. The app was also driven in a real headless browser (form validation, character counter,
-submit, dark-mode toggle) to confirm it actually works, not just that its unit tests do.
+| Protection                 | How it works                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Row Level Security**     | Postgres itself only allows `SELECT` and `INSERT` on the `shoutouts` table. No policy exists for `UPDATE`/`DELETE`, so they are denied by default even if the application code had a bug.                                                                                                                                                                                                                                     |
+| **Server-side validation** | Every `POST` body is parsed with a Zod schema before it reaches the database: required fields, a 280-character message cap, and an emoji allowlist. The frontend's copy of this schema is UX only, never trusted as the real boundary.                                                                                                                                                                                        |
+| **Rate limiting**          | The Edge Function limits each client to 5 `POST` requests per 60-second window, returning `429` with a `Retry-After` header past that. This is an in-memory, per-instance guard: it resets on a cold start and is not shared across regions, so it is a deterrent against casual spam, not a hard distributed-systems guarantee. That trade-off is documented directly in the function's own source comments.                 |
+| **Configurable CORS**      | Defaults to allowing any origin (appropriate for a public API with no cookies or session state), but can be locked to one exact origin by setting the `ALLOWED_ORIGIN` secret, with no code changes required.                                                                                                                                                                                                                 |
+| **No information leakage** | Database errors are logged server-side with full detail and returned to the client as a short, generic message only. Verified directly in the test suite: it asserts that a raw Postgres error string never appears in a response body.                                                                                                                                                                                       |
+| **HTTP security headers**  | Every response (both the API and the deployed frontend) sends `X-Content-Type-Options: nosniff`. The frontend additionally sends a `Content-Security-Policy` restricting scripts and connections to known-safe origins, `X-Frame-Options: DENY` to prevent clickjacking, `Referrer-Policy: strict-origin-when-cross-origin`, and a `Permissions-Policy` disabling camera/microphone/geolocation, none of which this app uses. |
+| **No secrets in source**   | Verified with `git grep` across the actual pushed repository: no API key, access token, or project reference is hardcoded anywhere. Real values only ever live in gitignored `.env.local`/`.env`, or in Vercel's/Supabase's own encrypted environment variable stores.                                                                                                                                                        |
+| **XSS**                    | React escapes all rendered text by default; there is no `dangerouslySetInnerHTML` anywhere in the codebase, so a shoutout message can never be interpreted as HTML.                                                                                                                                                                                                                                                           |
+| **Dependency hygiene**     | `npm audit` is checked; the only outstanding advisories are in Vite's development server (not the production bundle), documented as a known, accepted trade-off in [§10 Known Limitations](#10-known-limitations) rather than left unmentioned.                                                                                                                                                                               |
 
 ---
 
-## Getting it running
+## 6. Testing
 
-### What you'll need installed
+Both runtimes are tested with each ecosystem's own tools, rather than forcing one test runner
+across a Node/Vite project and a Deno project.
 
-| Tool           | Version | What it's for                                                             |
-| -------------- | ------- | ------------------------------------------------------------------------- |
-| Node.js        | 20+     | Running the frontend                                                      |
-| npm            | 10+     | Installing dependencies                                                   |
-| Docker Desktop | latest  | Runs Supabase's local dev stack (Postgres, Studio, the Edge Runtime)      |
-| Deno           | 1.44+   | Only needed if you want to run the Edge Function's own tests/lint locally |
+- **Frontend (Vitest + React Testing Library):** 70 tests across the shared validation schema,
+  the emoji theme, both data hooks, and every component. Coverage sits at 98%+ overall, with
+  every component file at 100%.
+- **Edge Function (Deno's built-in test runner):** 21 tests covering validation edge cases (a
+  message one character over the limit, an emoji outside the allowlist, a missing field), the
+  `GET`/`POST` success paths, `OPTIONS`/CORS handling, the rate limiter, and the configurable
+  `ALLOWED_ORIGIN` header.
+- Every check was actually run, not just written: lint, typecheck, the full test suite, and the
+  production build all pass clean on this repository as delivered. The app was also driven in a
+  real headless browser (form validation, character counter, submit, dark mode toggle) to confirm
+  it works, not just that its unit tests pass.
 
-The Supabase CLI doesn't need a separate install — every command below runs it through `npx`.
+---
 
-### 1. Install and set up your environment file
+## 7. Requirements Coverage
+
+Mapped directly against the brief's own evaluation table.
+
+| Area               | What is being evaluated                                        | Status | Where to look                                                                                                                                                                                |
+| ------------------ | -------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TypeScript**     | Proper types, no `any`, interfaces for data models             | Met    | Zero `any` in the codebase, enforced by ESLint. Data model in `src/types/shoutout.ts`, generated DB types in `src/types/database.types.ts`                                                   |
+| **React**          | Clean component structure, state management, form handling     | Met    | `src/components/ui/` vs. `src/components/shoutouts/` split, state owned in `useShoutouts`/`useCreateShoutout`, controlled form in `ShoutoutForm.tsx`                                         |
+| **Edge Functions** | Input validation, error handling, proper HTTP responses        | Met    | `supabase/functions/shoutouts/index.ts`, Zod validation, `200`/`201`/`400`/`404`/`405`/`429`/`500` all used correctly, 21 tests                                                              |
+| **Code Quality**   | Readable, consistent naming, no dead code, reasonable comments | Met    | ESLint + Prettier enforced on every commit via a pre-commit hook, comments explain the "why" rather than narrating the code                                                                  |
+| **Database**       | Correct schema, sensible constraints                           | Met    | `supabase/migrations/`, RLS policies, per-column check constraints, an index on `created_at` for the newest-first query                                                                      |
+| **Taste**          | Does the UI look intentional? Is the UX smooth or janky?       | Met    | See [§4 Design System](#4-design-system) and [§8 Creative Additions](#8-creative-additions): a real design language, animation, confetti, dark mode, all respecting `prefers-reduced-motion` |
+
+---
+
+## 8. Creative Additions
+
+The floor (a validated `GET`/`POST` API, a form, a grid, real storage) is all there. On top of
+that:
+
+- **A full design system**, modeled on a real production SaaS site rather than default styling,
+  documented in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+- **Color-coded cards.** Each of the 8 allowed emoji has its own accent color, defined in one
+  place (`src/lib/emojiTheme.ts`) and kept from drifting out of sync with the validation allowlist
+  by a runtime check.
+- **Animated emoji**, not static glyphs. Each card's emoji wiggles gently on a staggered loop, and
+  the emoji picker's buttons bounce on hover and float once selected, all skipped under reduced
+  motion.
+- **Confetti on submit.** A short, on-brand confetti burst fires the moment a shoutout is
+  successfully posted (`src/lib/confetti.ts`), wrapped defensively so it can never break the
+  actual submit flow if the environment does not support it.
+- **Dark mode**, persisted per visitor, falling back to the OS setting on first visit.
+- **A live character counter** that turns red once within 20 characters of the 280-character
+  limit.
+- **Posting feels instant.** The moment the server confirms a shoutout, it is added straight to
+  the top of the grid with the real server-generated `id` and timestamp, no full page refetch.
+- **Production-grade security hardening** beyond what the brief asks for: rate limiting,
+  configurable CORS, and a full HTTP security header set. See [§5 Security](#5-security).
+- **Both a Vercel-ready config and a working Docker image**, so however this gets hosted, it is
+  ready.
+
+---
+
+## 9. Self-Deployment Steps
+
+### Prerequisites
+
+| Tool           | Version | What it is for                                                   |
+| -------------- | ------- | ---------------------------------------------------------------- |
+| Node.js        | 20+     | Running the frontend                                             |
+| npm            | 10+     | Installing dependencies                                          |
+| Docker Desktop | latest  | Runs Supabase's local dev stack (Postgres, Studio, Edge Runtime) |
+| Deno           | 1.44+   | Only needed to run the Edge Function's own tests/lint locally    |
+
+The Supabase CLI does not need a separate install. Every command below runs it through `npx`.
+
+### Step 1: Install and configure the environment
 
 ```bash
 npm install
 cp .env.example .env.local
 ```
 
-`.env.local` is where your real (local) keys go, and it's already excluded from git — nothing in this
-project ever hardcodes a key or secret anywhere in the source; everything is read from environment
-variables, on both the frontend (`import.meta.env.VITE_*`) and the Edge Function (`Deno.env.get(...)`).
+`.env.local` holds your real local keys and is already gitignored. Nothing in this project ever
+hardcodes a key or secret in source; everything is read from environment variables.
 
-### 2. Start the local database
+### Step 2: Start the local database
 
 ```bash
 npx supabase start     # boots Postgres, Studio, and the Edge Runtime in Docker
 npx supabase db reset  # applies the migration and seeds 5 sample shoutouts
 ```
 
-`supabase start` prints a URL and a couple of keys the first time it runs — copy the `anon` key into
-`.env.local` as `VITE_SUPABASE_ANON_KEY`. (You can browse the local database directly at
-`http://127.0.0.1:54323` if you want to poke around in Studio.)
+Copy the printed `anon` key into `.env.local` as `VITE_SUPABASE_ANON_KEY`. Local Studio (a
+Postgres browser UI) is available at `http://127.0.0.1:54323`.
 
-One thing worth knowing: when you serve the Edge Function locally (next step), Supabase automatically
-injects its _own_ `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` pointing at your local stack, and
-ignores whatever you've put in `.env.local` for those two specific names. That's not a bug — Supabase
-reserves that prefix — it's just how local development works. You still need real values for those
-two when deploying for real, which is why they're documented in `.env.example`.
+Note: when serving the Edge Function locally (next step), Supabase automatically injects its own
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for the local stack and ignores whatever is set in
+`.env.local` for those two names specifically. That is a Supabase platform behavior, not a bug.
 
-### 3. Run it (two terminals)
+### Step 3: Run it locally (two terminals)
 
 ```bash
-# Terminal 1 — the API
+# Terminal 1, the API
 npx supabase functions serve shoutouts --env-file .env.local --no-verify-jwt
 
-# Terminal 2 — the frontend
+# Terminal 2, the frontend
 npm run dev
 ```
 
-Open `http://localhost:5173` and you should see the board, seeded with five sample shoutouts, ready
-to post a new one.
+Open `http://localhost:5173`.
 
-### 4. Run the checks
+### Step 4: Run the checks
 
 ```bash
 npm run lint
 npm run typecheck
-npm run test            # 70 tests
+npm run test
 npm run test:coverage
 npm run build
 
-# Edge Function — needs Deno installed (https://deno.land/#installation)
+# Edge Function, needs Deno installed
 deno lint supabase/functions/
 deno fmt --check supabase/functions/
 deno check supabase/functions/shoutouts/index.ts
 deno test --allow-env --allow-net supabase/functions/shoutouts/
 ```
 
-Everything above passes on this repo as delivered.
+### Step 5: Deploy your own copy
 
----
-
-## Deploying
-
-You're deploying the frontend to **Vercel**, which this repo is already set up for — there's a
-`vercel.json` pinning the build command and output directory, so connecting the GitHub repo (or
-running `vercel --prod`) should just work. The one thing to do by hand is set your environment
-variables in the Vercel project's dashboard (never commit these):
-
-| Variable                      | Value                                                 |
-| ----------------------------- | ----------------------------------------------------- |
-| `VITE_SUPABASE_URL`           | `https://<your-project-ref>.supabase.co`              |
-| `VITE_SUPABASE_ANON_KEY`      | your deployed project's public anon key               |
-| `VITE_SUPABASE_FUNCTIONS_URL` | `https://<your-project-ref>.supabase.co/functions/v1` |
-
-Before that will actually return data, the Edge Function and the database migration need to be pushed
-to a real (hosted) Supabase project once:
+**Backend (Supabase):**
 
 ```bash
+npx supabase login
 npx supabase link --project-ref <your-project-ref>
-npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 npx supabase db push
 npx supabase functions deploy shoutouts
 ```
 
-**You don't need Render, or any other server host.** There's no custom backend process here to run —
-the API _is_ the Supabase Edge Function, and it runs on Supabase's own infrastructure the moment you
-`deploy` it. Vercel serves the static frontend; Supabase serves the API and the database. That's the
-whole stack.
+`functions deploy` automatically gives the function access to your project's URL and service-role
+key. You never need to set those secrets by hand.
 
-A `Dockerfile` is also included (multi-stage: builds the frontend, serves it with a small nginx
-image) in case you ever want to run this somewhere other than Vercel — see the comments at the top of
-the `Dockerfile` for the exact build/run commands. It's not something you need for a Vercel deploy;
-it's there as an alternative.
+**Frontend (Vercel):** connect the GitHub repo, or run `vercel --prod`. `vercel.json` already
+pins the build command, output directory, and security headers. Set these three environment
+variables in the Vercel project's dashboard:
+
+| Variable                      | Value                                                 |
+| ----------------------------- | ----------------------------------------------------- |
+| `VITE_SUPABASE_URL`           | `https://<your-project-ref>.supabase.co`              |
+| `VITE_SUPABASE_ANON_KEY`      | your project's public anon/publishable key            |
+| `VITE_SUPABASE_FUNCTIONS_URL` | `https://<your-project-ref>.supabase.co/functions/v1` |
+
+**No other hosting is needed.** There is no custom backend server to run: the API is the Supabase
+Edge Function, running on Supabase's own infrastructure the moment it is deployed. Vercel serves
+the static frontend, Supabase serves the API and the database. That is the whole stack.
+
+**Docker (optional alternative to Vercel):** a multi-stage `Dockerfile` is included (builds the
+frontend, serves it with nginx, includes the same security headers as the Vercel config). See the
+comments at the top of the `Dockerfile` for exact build and run commands.
 
 ---
 
-## What's beyond the core brief
+## 10. Known Limitations
 
-The floor — a validated `GET`/`POST` API, a form, a grid, real storage — is all there. On top of that:
+Documented deliberately, not left as silent gaps.
 
-- **Color-coded cards.** Each of the 8 allowed emoji has its own accent color (a left border + a
-  matching icon background), defined in one place (`src/lib/emojiTheme.ts`) and kept from silently
-  drifting out of sync with the validation allowlist by a small runtime check.
-- **Dark mode**, persisted per-visitor, falling back to your OS setting on first visit.
-- **A live character counter** on the message field that turns red once you're within 20 characters
-  of the 280-character limit.
-- **New cards animate in** (a small fade + rise), fully respecting reduced-motion preferences.
-- **Posting feels instant** — the moment the server confirms your shoutout, it's added straight to the
-  top of the grid with the real server-generated `id` and timestamp, no full page refetch needed.
-- **A genuinely accessible emoji picker** — keyboard-operable, not just clickable.
-- Both a Vercel-ready config and a working Docker image, so however you'd like to host it, it's ready.
-
-## What's not perfect (and why that's a deliberate call, not an oversight)
-
-- `npm audit` flags a couple of advisories in Vite's **development server** (not anything that ships
-  in the production build). Fixing them cleanly means a major-version bump of Vite that hasn't been
-  tested against this setup — for a project this size, that felt like a worse trade than leaving a
-  documented, dev-only advisory in place.
-- A handful of lines are intentionally left without a test: a couple of guard clauses that only matter
-  in an environment this app doesn't run in (server-side rendering), and one "this should never
-  happen" internal consistency check. Writing a test that forces those to execute would mean testing
-  something that can't actually occur — that's padding a coverage number, not testing behavior, so
-  they're called out instead.
+- `npm audit` flags a couple of advisories in Vite's development server, not anything that ships
+  in the production build. Fixing them cleanly means a major-version bump of Vite untested against
+  this setup. For a project this size, leaving a documented, dev-only advisory in place was the
+  better trade.
+- The rate limiter is in-memory and per-instance. It resets on a cold start and is not shared
+  across regions. It is a real deterrent against casual spam, not a distributed-systems-grade
+  guarantee. A production system expecting serious abuse would back it with a shared store
+  (Redis, or a database table) instead.
+- A handful of lines are intentionally left without a test: guard clauses that only matter in an
+  environment this app does not run in (server-side rendering), and one "this should never
+  happen" internal consistency check. Testing something that cannot actually occur would pad a
+  coverage number without testing real behavior, so those are called out instead of hidden.

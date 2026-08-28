@@ -2,11 +2,14 @@
 // EMOJI_ALLOWLIST as a WAI-ARIA radiogroup with roving tabindex: Tab enters
 // and exits the group exactly once, arrow keys move the checked selection
 // between emoji (wrapping at either end), and Space/Enter activate the
-// focused button via native <button> semantics. See
-// docs/DESIGN_SYSTEM.md §3 (emoji picker) and §4 (accessibility).
+// focused button via native <button> semantics. Buttons get a small
+// hover/tap wiggle and the checked one bobs gently, both skipped under
+// prefers-reduced-motion. See docs/DESIGN_SYSTEM.md §3 (emoji picker) and
+// §4 (accessibility).
 
 import { useRef } from "react";
 import type { KeyboardEvent } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { EMOJI_ALLOWLIST } from "@/types/shoutout";
 import type { Emoji } from "@/types/shoutout";
 import { cn } from "@/lib/utils";
@@ -36,6 +39,7 @@ export function EmojiPicker(props: EmojiPickerProps): JSX.Element {
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const errorId = `${id}-error`;
   const checkedIndex = value ? EMOJI_ALLOWLIST.indexOf(value) : -1;
+  const prefersReducedMotion = useReducedMotion();
 
   function focusIndex(index: number): void {
     buttonRefs.current[index]?.focus();
@@ -76,7 +80,7 @@ export function EmojiPicker(props: EmojiPickerProps): JSX.Element {
           const isTabbable = checkedIndex === -1 ? index === 0 : isChecked;
 
           return (
-            <button
+            <motion.button
               key={emoji}
               type="button"
               ref={(node) => {
@@ -87,15 +91,25 @@ export function EmojiPicker(props: EmojiPickerProps): JSX.Element {
               tabIndex={isTabbable ? 0 : -1}
               onClick={() => onChange(emoji)}
               onKeyDown={(event) => handleKeyDown(event, index)}
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.2, rotate: 10 }}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.9, rotate: -10 }}
+              animate={
+                isChecked && !prefersReducedMotion
+                  ? {
+                      y: [0, -3, 0],
+                      transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+                    }
+                  : { y: 0 }
+              }
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-xl text-2xl opacity-70 transition",
+                "flex h-11 w-11 items-center justify-center rounded-xl text-2xl opacity-70 transition-opacity",
                 "hover:opacity-100 focus-visible:opacity-100",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2",
                 isChecked && "scale-110 opacity-100 ring-2 ring-green-700",
               )}
             >
               {emoji}
-            </button>
+            </motion.button>
           );
         })}
       </div>

@@ -6,11 +6,11 @@ Testing strategy for the Team Shoutout Board's two runtimes: the Vite/React fron
 
 ## 1. Testing Strategy
 
-| Layer                    | Tool                           | Scope                                                                                                       | Runs                         |
-| ------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| **Frontend unit**        | Vitest                         | Pure functions (`emojiTheme.ts`, Zod schema behavior), custom hooks in isolation                            | Every commit, pre-commit, CI |
-| **Frontend integration** | Vitest + React Testing Library | Components rendered together — form submission flow, grid rendering from fetched data, error/loading states | Pre-push, CI                 |
-| **Backend**              | `deno test`                    | The `shoutouts` handler — GET/POST behavior, validation edge cases, CORS/OPTIONS, error mapping             | Every commit, CI             |
+| Layer                    | Tool                           | Scope                                                                                                      | Runs                         |
+| ------------------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| **Frontend unit**        | Vitest                         | Pure functions (`emojiTheme.ts`, Zod schema behavior), custom hooks in isolation                           | Every commit, pre-commit, CI |
+| **Frontend integration** | Vitest + React Testing Library | Components rendered together: form submission flow, grid rendering from fetched data, error/loading states | Pre-push, CI                 |
+| **Backend**              | `deno test`                    | The `shoutouts` handler: GET/POST behavior, validation edge cases, CORS/OPTIONS, error mapping             | Every commit, CI             |
 
 ### What belongs where
 
@@ -43,12 +43,12 @@ Testing strategy for the Team Shoutout Board's two runtimes: the Vite/React fron
 ### Frontend
 
 - Unit tests never hit the network. Mock the API wrapper module (`src/lib/api.ts`) directly (`vi.mock`), not `fetch` at the global level, so tests stay coupled to the actual contract the app depends on.
-- Integration tests that exercise `useShoutouts`/`useCreateShoutout` mock the same API wrapper module with realistic success/error response shapes matching `ApiResponse<T>` from `src/types/shoutout.ts` — don't invent response shapes the real API wouldn't send.
+- Integration tests that exercise `useShoutouts`/`useCreateShoutout` mock the same API wrapper module with realistic success/error response shapes matching `ApiResponse<T>` from `src/types/shoutout.ts`; don't invent response shapes the real API wouldn't send.
 
 ### Backend
 
-- **Local dev / CI unit-level:** mock the Supabase client (`createClient`) so `index_test.ts` can test validation and routing logic without a live database — inject a fake client whose `.from().select()/.insert()` resolve with canned data or errors.
-- **CI integration-level (optional, only if a real Docker Supabase is available in the runner):** run against a real local Supabase instance (`supabase start && supabase db reset`) to additionally verify RLS policies actually behave as configured — this is the only way to catch a policy typo that a mocked client would hide.
+- **Local dev / CI unit-level:** mock the Supabase client (`createClient`) so `index_test.ts` can test validation and routing logic without a live database, by injecting a fake client whose `.from().select()/.insert()` resolve with canned data or errors.
+- **CI integration-level (optional, only if a real Docker Supabase is available in the runner):** run against a real local Supabase instance (`supabase start && supabase db reset`) to additionally verify RLS policies actually behave as configured, since this is the only way to catch a policy typo that a mocked client would hide.
 - Never point any automated test at a deployed (staging/production) Supabase project.
 
 ---
@@ -71,10 +71,10 @@ deno coverage coverage/deno   # print coverage summary
 
 ## 5. Coverage Targets
 
-| Metric                                                           | Target                                                                    |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Frontend business logic (`src/lib/`, `src/hooks/`, `src/types/`) | 80%+                                                                      |
-| Edge Function (`supabase/functions/shoutouts/`)                  | 80%+, with 100% of validation branches (every Zod failure path) covered   |
-| UI components (`src/components/`)                                | Best-effort — prioritize the form and grid over presentational primitives |
+| Metric                                                           | Target                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Frontend business logic (`src/lib/`, `src/hooks/`, `src/types/`) | 80%+                                                                     |
+| Edge Function (`supabase/functions/shoutouts/`)                  | 80%+, with 100% of validation branches (every Zod failure path) covered  |
+| UI components (`src/components/`)                                | Best-effort: prioritize the form and grid over presentational primitives |
 
 Coverage is a floor for the logic that matters (validation, data shaping, error mapping), not a mandate to test trivial JSX. A bug fix should always ship with a regression test that fails without the fix.

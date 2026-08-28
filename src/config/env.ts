@@ -1,7 +1,7 @@
 // Validates Vite-exposed environment variables once, at module load time,
 // so a missing/malformed var fails fast with a readable error instead of
 // surfacing as a cryptic runtime crash somewhere deep in a component tree.
-// Import `env` from here everywhere on the frontend — never read
+// Import `env` from here everywhere on the frontend, never read
 // `import.meta.env` directly outside this file.
 
 import { z } from "zod";
@@ -24,7 +24,7 @@ function loadEnv(): Env {
     const hint =
       "Copy .env.example to .env.local and fill in the values printed by `supabase start` " +
       "(for local dev), or set these in your hosting provider's project settings and redeploy " +
-      "(for a deployed build — Vite inlines them at build time, so changing them requires a new build).";
+      "(for a deployed build: Vite inlines them at build time, so changing them requires a new build).";
 
     // eslint-disable-next-line no-console -- intentional startup diagnostic, not app logging
     console.error(`\n[env] Invalid or missing environment variables:\n${issues}\n\n${hint}\n`);

@@ -1,8 +1,9 @@
 // Single shoutout card: a compact, calmly animated presentation of one
 // Shoutout row. The left accent border and emoji "well" are derived from
-// getEmojiTheme so the color mapping lives in exactly one place. The
-// relative-timestamp formatter below is only used here, so it stays local
-// rather than moving into lib/.
+// getEmojiTheme so the color mapping lives in exactly one place. The emoji
+// itself gets a small periodic wiggle, staggered per card, fully disabled
+// under prefers-reduced-motion. The relative-timestamp formatter below is
+// only used here, so it stays local rather than moving into lib/.
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { Shoutout } from "@/types/shoutout";
@@ -17,6 +18,18 @@ const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const RECENT_THRESHOLD_MS = 7 * DAY_MS;
+
+// Small deterministic hash so each card's emoji wiggles on its own, stable
+// offset instead of every card animating in perfect unison, without relying
+// on Math.random() (which would make the same card animate differently on
+// every render).
+function staggerDelaySeconds(id: string): number {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = (hash * 31 + id.charCodeAt(index)) % 1000;
+  }
+  return (hash / 1000) * 1.5;
+}
 
 function formatRelativeTime(createdAt: string): string {
   const created = new Date(createdAt);
@@ -61,9 +74,27 @@ export function ShoutoutCard(props: ShoutoutCardProps): JSX.Element {
             theme.well,
           )}
         >
-          <span role="img" aria-label={theme.label}>
+          <motion.span
+            role="img"
+            aria-label={theme.label}
+            className="inline-block"
+            animate={
+              prefersReducedMotion ? undefined : { rotate: [0, -12, 12, -6, 0], y: [0, -2, 0] }
+            }
+            transition={
+              prefersReducedMotion
+                ? undefined
+                : {
+                    duration: 1.6,
+                    repeat: Infinity,
+                    repeatDelay: 2.4,
+                    delay: staggerDelaySeconds(shoutout.id),
+                    ease: "easeInOut",
+                  }
+            }
+          >
             {shoutout.emoji}
-          </span>
+          </motion.span>
         </div>
 
         <div className="min-w-0 flex-1">

@@ -1,7 +1,7 @@
 // Exercises useShoutouts against a mocked "@/lib/api" module (per
 // docs/TESTING_GUIDELINES.md §3): the fetch-on-mount lifecycle, success and
 // ApiError failure branches, the local `addShoutout` prepend, and `refetch`
-// triggering a second network call. ApiError itself is the real class —
+// triggering a second network call. ApiError itself is the real class,
 // only getShoutouts/createShoutout are mocked.
 
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -54,13 +54,13 @@ describe("useShoutouts", () => {
 
   it("sets a human error string on a rejected ApiError", async () => {
     vi.mocked(getShoutouts).mockRejectedValue(
-      new ApiError("Network error — could not reach the server", 0),
+      new ApiError("Network error: could not reach the server", 0),
     );
 
     const { result } = renderHook(() => useShoutouts());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.error).toBe("Network error — could not reach the server");
+    expect(result.current.error).toBe("Network error: could not reach the server");
     expect(result.current.shoutouts).toEqual([]);
   });
 

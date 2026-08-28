@@ -1,6 +1,6 @@
 // Frontend mirror of the Zod schema enforced in
 // supabase/functions/shoutouts/index.ts. This copy exists only for fast
-// inline form feedback — the Edge Function's schema is the real security
+// inline form feedback. The Edge Function's schema is the real security
 // boundary. Any change here must be mirrored there in the same PR.
 
 import { z } from "zod";

@@ -1,6 +1,6 @@
 // Round icon button that flips the app between light and dark mode. Reads
 // current theme and the toggle action from the shared useTheme hook rather
-// than owning any state itself — this component is purely presentational
+// than owning any state itself. This component is purely presentational
 // glue around that hook's contract. Styled for a fixed dark context (it
 // always sits on App's black header band, regardless of the light/dark
 // toggle it controls), so it has no light/dark-conditional classes itself.

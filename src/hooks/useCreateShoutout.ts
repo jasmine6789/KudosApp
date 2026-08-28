@@ -1,5 +1,5 @@
 // Wraps the create-shoutout mutation: tracks in-flight/error state and
-// never throws out of `submit` — callers get back either the created
+// never throws out of `submit`, callers get back either the created
 // Shoutout or null, with the human-readable failure reason left in `error`.
 
 import { useCallback, useState } from "react";

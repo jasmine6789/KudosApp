@@ -4,15 +4,19 @@
 //
 // Per docs/TESTING_GUIDELINES.md §3 ("Backend"), these tests mock the
 // Supabase client (never hit a live database) and cover: validation edge
-// cases, GET/POST success + error mapping, and OPTIONS/CORS handling.
-// `index.ts` exports `shoutoutInputSchema`, `jsonResponse`, `handleGet`,
-// `handlePost`, and `handleRequest` solely so this file can exercise them
-// directly — none of them change behavior.
+// cases, GET/POST success + error mapping, OPTIONS/CORS handling, the
+// per-client rate limiter, and the configurable ALLOWED_ORIGIN header.
+// `index.ts` exports `shoutoutInputSchema`, `jsonResponse`, `getCorsHeaders`,
+// `handleGet`, `handlePost`, `handleRequest`, and `__resetRateLimiterForTests`
+// solely so this file can exercise them directly. None of them change
+// behavior in production use.
 
 import { assert, assertEquals, assertExists } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 import {
+  __resetRateLimiterForTests,
+  getCorsHeaders,
   handleGet,
   handlePost,
   handleRequest,
@@ -76,7 +80,7 @@ const VALID_PAYLOAD = {
 };
 
 // ---------------------------------------------------------------------------
-// shoutoutInputSchema — validation branches
+// shoutoutInputSchema: validation branches
 // ---------------------------------------------------------------------------
 
 Deno.test("shoutoutInputSchema accepts a well-formed payload", () => {
@@ -145,8 +149,28 @@ Deno.test("jsonResponse sets the status, CORS headers, and JSON content-type", a
     "GET, POST, OPTIONS",
   );
   assertEquals(res.headers.get("Content-Type"), "application/json");
+  assertEquals(res.headers.get("X-Content-Type-Options"), "nosniff");
+  assertEquals(res.headers.get("Cache-Control"), "no-store");
   const body = await readJsonBody(res);
   assertEquals(body, { success: true, data: { ok: true } });
+});
+
+Deno.test("getCorsHeaders defaults to a wildcard origin, and honors ALLOWED_ORIGIN when set", () => {
+  const original = Deno.env.get("ALLOWED_ORIGIN");
+
+  try {
+    Deno.env.delete("ALLOWED_ORIGIN");
+    assertEquals(getCorsHeaders()["Access-Control-Allow-Origin"], "*");
+
+    Deno.env.set("ALLOWED_ORIGIN", "https://shoutout-rho.vercel.app");
+    assertEquals(
+      getCorsHeaders()["Access-Control-Allow-Origin"],
+      "https://shoutout-rho.vercel.app",
+    );
+  } finally {
+    if (original === undefined) Deno.env.delete("ALLOWED_ORIGIN");
+    else Deno.env.set("ALLOWED_ORIGIN", original);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -195,6 +219,7 @@ Deno.test("handleGet returns 500 with a generic message when the select fails", 
 // ---------------------------------------------------------------------------
 
 Deno.test("handlePost returns 400 with a field-level error when to_name is missing", async () => {
+  __resetRateLimiterForTests();
   const { to_name: _omit, ...rest } = VALID_PAYLOAD;
   const supabase = fakeSupabaseForInsert({ data: null, error: null });
 
@@ -208,6 +233,7 @@ Deno.test("handlePost returns 400 with a field-level error when to_name is missi
 });
 
 Deno.test("handlePost returns 400 when message exceeds 280 characters", async () => {
+  __resetRateLimiterForTests();
   const supabase = fakeSupabaseForInsert({ data: null, error: null });
 
   const res = await handlePost(
@@ -223,6 +249,7 @@ Deno.test("handlePost returns 400 when message exceeds 280 characters", async ()
 });
 
 Deno.test("handlePost returns 400 when the emoji is outside the allowlist", async () => {
+  __resetRateLimiterForTests();
   const supabase = fakeSupabaseForInsert({ data: null, error: null });
 
   const res = await handlePost(
@@ -238,6 +265,7 @@ Deno.test("handlePost returns 400 when the emoji is outside the allowlist", asyn
 });
 
 Deno.test("handlePost returns 400 when the request body is not valid JSON", async () => {
+  __resetRateLimiterForTests();
   const supabase = fakeSupabaseForInsert({ data: null, error: null });
   const req = new Request("http://localhost/functions/v1/shoutouts", {
     method: "POST",
@@ -254,6 +282,7 @@ Deno.test("handlePost returns 400 when the request body is not valid JSON", asyn
 });
 
 Deno.test("handlePost returns 500 with a generic message when the insert fails", async () => {
+  __resetRateLimiterForTests();
   const rawMessage =
     'duplicate key value violates unique constraint "shoutouts_pkey"';
   const supabase = fakeSupabaseForInsert({
@@ -271,6 +300,7 @@ Deno.test("handlePost returns 500 with a generic message when the insert fails",
 });
 
 Deno.test("handlePost returns 201 with the inserted row on success", async () => {
+  __resetRateLimiterForTests();
   const insertedRow = {
     id: "42",
     from_name: VALID_PAYLOAD.from_name,
@@ -290,7 +320,60 @@ Deno.test("handlePost returns 201 with the inserted row on success", async () =>
 });
 
 // ---------------------------------------------------------------------------
-// handleRequest — top-level routing (OPTIONS / method not allowed / config)
+// Rate limiting
+// ---------------------------------------------------------------------------
+
+function postRequestFrom(clientIp: string): Request {
+  return new Request("http://localhost/functions/v1/shoutouts", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-forwarded-for": clientIp,
+    },
+    body: JSON.stringify(VALID_PAYLOAD),
+  });
+}
+
+Deno.test("handlePost allows up to the per-window limit, then returns 429 with Retry-After", async () => {
+  __resetRateLimiterForTests();
+  const supabase = fakeSupabaseForInsert({
+    data: { id: "1", ...VALID_PAYLOAD, created_at: "2026-08-28T00:00:00.000Z" },
+    error: null,
+  });
+  const clientIp = "203.0.113.7";
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const res = await handlePost(postRequestFrom(clientIp), supabase);
+    assertEquals(res.status, 201, `attempt ${attempt + 1} of 5 should succeed`);
+  }
+
+  const limited = await handlePost(postRequestFrom(clientIp), supabase);
+  assertEquals(limited.status, 429);
+  assertExists(limited.headers.get("Retry-After"));
+  const body = await readJsonBody(limited);
+  assertEquals(body.success, false);
+});
+
+Deno.test("handlePost rate-limits each client independently", async () => {
+  __resetRateLimiterForTests();
+  const supabase = fakeSupabaseForInsert({
+    data: { id: "1", ...VALID_PAYLOAD, created_at: "2026-08-28T00:00:00.000Z" },
+    error: null,
+  });
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await handlePost(postRequestFrom("198.51.100.1"), supabase);
+  }
+  // The first client is now at its limit; a different client must be unaffected.
+  const otherClientRes = await handlePost(
+    postRequestFrom("198.51.100.2"),
+    supabase,
+  );
+  assertEquals(otherClientRes.status, 201);
+});
+
+// ---------------------------------------------------------------------------
+// handleRequest: top-level routing (OPTIONS / method not allowed / config)
 // ---------------------------------------------------------------------------
 
 Deno.test("handleRequest short-circuits an OPTIONS request to 204 with CORS headers", async () => {

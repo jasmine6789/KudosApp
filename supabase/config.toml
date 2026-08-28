@@ -47,7 +47,7 @@ enabled = false
 [analytics]
 enabled = false
 
-# Edge Functions local runtime — required to run `supabase functions serve`.
+# Edge Functions local runtime: required to run `supabase functions serve`.
 [edge_runtime]
 enabled = true
 policy = "oneshot"

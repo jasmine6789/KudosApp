@@ -2,7 +2,7 @@
 // roving tabindex, arrow-key navigation (including wrap-around), click
 // selection, and the error-message/aria-describedby wiring. EmojiPicker is
 // fully controlled (value/onChange are props), so these tests wrap it in a
-// tiny stateful harness that mirrors how ShoutoutForm actually drives it —
+// tiny stateful harness that mirrors how ShoutoutForm actually drives it,
 // otherwise a keyboard press would have no visible effect to assert on.
 
 import { useState } from "react";

@@ -1,6 +1,6 @@
 // Generic button primitive shared across the app (submit actions, ghost
 // actions, etc.). Wraps framer-motion's motion.button for hover/tap
-// micro-interactions — skipped entirely under prefers-reduced-motion — and
+// micro-interactions, skipped entirely under prefers-reduced-motion, and
 // swaps its children for a Spinner while forcing a disabled, muted look
 // during `isLoading`. Feature components own copy/handlers; this component
 // only owns look-and-feel.
@@ -27,7 +27,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 // collide with framer-motion's (onDrag, onAnimationStart, ...) and replaces
 // them with its own signatures. Spreading a `ButtonHTMLAttributes` rest
 // object still carries the native versions of those keys, which the
-// compiler sees as incompatible with motion's — so the passthrough is typed
+// compiler sees as incompatible with motion's, so the passthrough is typed
 // through this narrowed, equally-real subset rather than reaching for `any`.
 type MotionSafeRest = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
