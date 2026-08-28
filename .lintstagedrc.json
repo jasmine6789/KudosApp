@@ -1,0 +1,13 @@
+{
+  "src/**/*.{ts,tsx}": [
+    "eslint --fix --max-warnings=0",
+    "prettier --write",
+    "vitest related --run"
+  ],
+  "*.{js,jsx,mjs,cjs}": ["eslint --fix --max-warnings=0", "prettier --write"],
+  "*.{json,md,mdx,yml,yaml,css,scss}": ["prettier --write"],
+  "supabase/functions/**/*.ts": ["deno fmt", "deno lint"],
+  "supabase/migrations/*.sql": [
+    "bash -c 'echo \"Reminder: run supabase gen types typescript --local > src/types/database.types.ts if the schema changed\"'"
+  ]
+}

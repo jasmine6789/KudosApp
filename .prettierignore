@@ -1,0 +1,13 @@
+# Build output
+dist
+coverage
+
+# Deno formats its own tree with `deno fmt` — see .lintstagedrc.json
+supabase/functions
+src/types/database.types.ts
+
+# SQL isn't a Prettier-supported language here
+supabase/migrations
+
+# Machine-generated lockfile
+package-lock.json

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Env files — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Test / coverage output
+coverage/
+playwright-report/
+test-results/
+
+# Supabase local runtime state
+supabase/.branches/
+supabase/.temp/
+
+# Editor / OS
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+
+# AI-assistant working notes — not part of the shipped project
+CLAUDE.md
+.github/CLAUDE.md
+.claude/
