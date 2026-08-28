@@ -37,7 +37,7 @@ Everything below is organized so a reviewer can quickly check:
 | **Frontend hosting** | Vercel (static build)                                       |
 | **Backend hosting**  | Supabase (managed Postgres + Edge Functions)                |
 | **Authentication**   | None, by design (the brief explicitly excludes it)          |
-| **Frontend tests**   | 70 passing, 98%+ coverage                                   |
+| **Frontend tests**   | 73 passing, 98%+ coverage                                   |
 | **Backend tests**    | 21 passing (Deno test runner)                               |
 | **Docker image**     | Included, optional alternative to Vercel                    |
 
@@ -153,7 +153,7 @@ access (the brief explicitly excludes authentication).
 Both runtimes are tested with each ecosystem's own tools, rather than forcing one test runner
 across a Node/Vite project and a Deno project.
 
-- **Frontend (Vitest + React Testing Library):** 70 tests across the shared validation schema,
+- **Frontend (Vitest + React Testing Library):** 73 tests across the shared validation schema,
   the emoji theme, both data hooks, and every component. Coverage sits at 98%+ overall, with
   every component file at 100%.
 - **Edge Function (Deno's built-in test runner):** 21 tests covering validation edge cases (a
