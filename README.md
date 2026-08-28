@@ -1,4 +1,4 @@
-# Team Shoutout Board
+# KUDOS - Team Shoutout Board
 
 A small internal tool for giving teammates quick, public kudos. Anyone can open the board, see
 every shoutout that has been posted (newest first), and add their own. No sign-up, no login, no
